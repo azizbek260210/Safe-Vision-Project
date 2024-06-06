@@ -94,7 +94,6 @@ def index(request):
     products = models.Product.objects.all()
     cart = models.Cart.objects.get_or_create(user=request.user, status=1)
     wishlist = models.WishList.objects.filter(user=request.user)
-    testimonal = models.Review.objects.filter().order_by('-id')[1:6]
 
     wishlisted_codes = [item.product.code for item in wishlist]
     for product in products:
@@ -111,7 +110,6 @@ def index(request):
         'products': paginator_page(products, 8, request),
         'wishlist': wishlist,
         'cart': cart,
-        'testimonal': testimonal,
         'newproducts': newproduct,
         'range':range(5)
 
@@ -123,8 +121,7 @@ def index(request):
 def product_detail(request, code):
     categorys = models.Category.objects.all()
     product = models.Product.objects.get(code=code)
-    images = models.ProductImg.objects.filter(product=product.id)
-    reviews = models.Review.objects.filter(product=product.id)
+    # images = models.ProductImg.objects.filter(product=product.id)
     cart = models.Cart.objects.get_or_create(user=request.user, status=1)
     recproducts = models.Product.objects.filter(category=product.category).order_by('-id')[:4]
     wishlist = models.WishList.objects.filter(product=product, user=request.user)
@@ -141,8 +138,7 @@ def product_detail(request, code):
     context = {
         'categorys': categorys,
         'product': product,
-        'images': images,
-        'reviews': reviews,
+        # 'images': images,
         'wishlist': wishlist,
         'cart': cart,
         'recproducts': recproducts,
@@ -186,7 +182,7 @@ def cart_detail(request, code):
     return render(request, 'front/carts/detail.html', context)
 
 
-def nima(request, id):
+def counter(request, id):
     if request.method == 'POST':
         count = int(request.POST['count'])
         cart_product = models.CartProduct.objects.get(id=id)
@@ -260,22 +256,6 @@ def order_rejection(request, code):
     cart = models.Cart.objects.get(code=code, user=request.user)
     cart.status = 3
     cart.save()
-    return redirect('front:order_list')
-
-
-@login_required(login_url='auth:sign-in')
-def order_review(request, code):
-    cart = models.Cart.objects.get(code=code, user=request.user)
-    products = models.CartProduct.objects.filter(cart=cart)
-    if request.method == 'POST':
-        for product in products:
-            review = models.Review.objects.create(
-                product=product.product,
-                user=request.user,
-                mark=int(request.POST.get('mark')),
-                text=request.POST.get('message')
-            )
-
     return redirect('front:order_list')
 
 
