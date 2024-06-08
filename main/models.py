@@ -36,10 +36,9 @@ class User(AbstractUser):
 
 
 class Banner(CodeGenerate):
-    img = models.URLField()
+    img = models.ImageField(upload_to='banner')
 
-    def __str__(self):
-        return self.img
+
 
 
 class Category(CodeGenerate):
@@ -53,12 +52,16 @@ class Product(CodeGenerate):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     des = models.TextField()
-    des2 = models.TextField()
+    des2 = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discountPrice = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    img = models.URLField()
-    # quantity = models.IntegerField()
+    quantity = models.IntegerField(null=True, blank=True)
+
     # delivery = models.BooleanField(default=False)  # +
+
+    @property
+    def images(self):
+        return ProductImage.objects.filter(product__code=self.code)
 
     # @property
     # def stock_status(self):
@@ -73,6 +76,11 @@ class Product(CodeGenerate):
 
     def __str__(self):
         return self.name
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    img = models.ImageField(upload_to='img/')
 
 
 # class EnterProduct(CodeGenerate):
@@ -102,11 +110,6 @@ class Product(CodeGenerate):
 #         self.product.save()
 
 #         super(EnterProduct, self).save(*args, **kwargs)
-
-
-# class ProductImg(models.Model):
-#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-#     img = models.ImageField(upload_to='img')
 
 
 # class ProductVideo(models.Model):
