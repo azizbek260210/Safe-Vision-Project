@@ -36,10 +36,10 @@ class User(AbstractUser):
 
 
 class Banner(CodeGenerate):
-    img = models.URLField()
+    img = models.ImageField(upload_to='banner')
 
     def __str__(self):
-        return self.img
+        return self.img.url
 
 
 class Category(CodeGenerate):
@@ -53,26 +53,28 @@ class Product(CodeGenerate):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     des = models.TextField()
-    des2 = models.TextField()
+    des2 = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discountPrice = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    img = models.URLField()
-    # quantity = models.IntegerField()
+    quantity = models.IntegerField(null=True, blank=True)
+
     # delivery = models.BooleanField(default=False)  # +
 
-    # @property
-    # def stock_status(self):
-    #     return bool(self.quantity)
+    @property
+    def images(self):
+        return ProductImage.objects.filter(product__code=self.code)
 
-    # @property
-    # def adv_mark(self):
-    #     review = Review.objects.filter(product__code=self.code)
-    #     if review:
-    #         mark = [i.mark for i in review]
-    #         return sum(mark) // len(mark)
+    @property
+    def stock_status(self):
+        return bool(self.quantity)
 
     def __str__(self):
         return self.name
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    img = models.ImageField(upload_to='img/')
 
 
 # class EnterProduct(CodeGenerate):
@@ -86,8 +88,8 @@ class Product(CodeGenerate):
 #     @property
 #     def enterprice(self):
 #         price = 0
-#         if self.product.discount_price:
-#             price = self.product.discount_price * self.quantity
+#         if self.product.discountPrice:
+#             price = self.product.discountPrice * self.quantity
 
 #         else:
 #             price = self.product.price * self.quantity
@@ -102,11 +104,6 @@ class Product(CodeGenerate):
 #         self.product.save()
 
 #         super(EnterProduct, self).save(*args, **kwargs)
-
-
-# class ProductImg(models.Model):
-#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-#     img = models.ImageField(upload_to='img')
 
 
 # class ProductVideo(models.Model):
@@ -146,8 +143,8 @@ class Cart(CodeGenerate):
         queryset = CartProduct.objects.filter(cart=self)
         total = 0
         for item in queryset:
-            if item.product.discount_price:
-                total += item.count * item.product.discount_price
+            if item.product.discountPrice:
+                total += item.count * item.product.discountPrice
             else:
                 total += item.count * item.product.price
         return total
@@ -168,8 +165,8 @@ class CartProduct(models.Model):
 
     @property
     def price(self):
-        if self.product.discount_price:
-            return self.count * self.product.discount_price
+        if self.product.discountPrice:
+            return self.count * self.product.discountPrice
         else:
             return self.count * self.product.price
 

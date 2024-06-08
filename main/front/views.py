@@ -134,7 +134,6 @@ def product_detail(request, code):
         v = i.code in wishlist_codes
         setattr(i, 'is_wishlisted', v)
 
-    print(product.adv_mark)
     context = {
         'categorys': categorys,
         'product': product,
@@ -281,7 +280,7 @@ def wishlist_delete(request, code):
     else:
         pass
     # return redirect('front:wishlist')
-    return redirect(request.META.get('HTTP_REFERER', 'front:wishlis'))
+    return redirect(request.META.get('HTTP_REFERER', 'front:wishlist'))
 
 
 @login_required(login_url='auth:sign-in')
@@ -289,4 +288,4 @@ def wishlist_add(request, code):
     product = models.Product.objects.get(code=code)
     models.WishList.objects.create(product=product, user=request.user)
     # return redirect('front:wishlist')
-    return redirect(request.META.get('HTTP_REFERER', 'front:wishlis'))
+    return redirect(request.META.get('HTTP_REFERER', 'front:wishlist'))
