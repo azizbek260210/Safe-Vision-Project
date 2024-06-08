@@ -36,10 +36,10 @@ class User(AbstractUser):
 
 
 class Banner(CodeGenerate):
-    img = models.URLField()
+    img = models.ImageField(upload_to='banner')
 
     def __str__(self):
-        return self.img
+        return self.img.url
 
 
 class Category(CodeGenerate):
@@ -59,6 +59,10 @@ class Product(CodeGenerate):
     quantity = models.IntegerField(null=True, blank=True)
 
     # delivery = models.BooleanField(default=False)  # +
+
+    @property
+    def images(self):
+        return ProductImage.objects.filter(product__code=self.code)
 
     @property
     def stock_status(self):
