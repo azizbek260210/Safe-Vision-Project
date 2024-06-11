@@ -39,17 +39,28 @@ class Banner(CodeGenerate):
     img = models.ImageField(upload_to='banner')
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def sub_category(self):
+        return SubCategory.objects.filter(category__name=self.name)
 
 
-class Category(CodeGenerate):
-    name = models.CharField(max_length=255, unique=True)
+class SubCategory(CodeGenerate):
+    name = models.CharField(max_length=255, )
+    image = models.ImageField(upload_to='subcategory', blank=True, null=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
 
 class Product(CodeGenerate):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     des = models.TextField()
     des2 = models.TextField(null=True, blank=True)
