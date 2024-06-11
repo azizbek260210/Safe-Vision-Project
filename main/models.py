@@ -38,6 +38,7 @@ class User(AbstractUser):
 class Banner(CodeGenerate):
     img = models.ImageField(upload_to='banner')
 
+<<<<<<< HEAD
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -48,6 +49,10 @@ class Category(models.Model):
     @property
     def sub_category(self):
         return SubCategory.objects.filter(category__name=self.name)
+=======
+    def __str__(self):
+        return self.img.url
+>>>>>>> aaf0b305a69bd7580f580e34d9793ffc1647733c
 
 
 class SubCategory(CodeGenerate):
@@ -74,16 +79,9 @@ class Product(CodeGenerate):
     def images(self):
         return ProductImage.objects.filter(product__code=self.code)
 
-    # @property
-    # def stock_status(self):
-    #     return bool(self.quantity)
-
-    # @property
-    # def adv_mark(self):
-    #     review = Review.objects.filter(product__code=self.code)
-    #     if review:
-    #         mark = [i.mark for i in review]
-    #         return sum(mark) // len(mark)
+    @property
+    def stock_status(self):
+        return bool(self.quantity)
 
     def __str__(self):
         return self.name
@@ -105,8 +103,8 @@ class ProductImage(models.Model):
 #     @property
 #     def enterprice(self):
 #         price = 0
-#         if self.product.discount_price:
-#             price = self.product.discount_price * self.quantity
+#         if self.product.discountPrice:
+#             price = self.product.discountPrice * self.quantity
 
 #         else:
 #             price = self.product.price * self.quantity
@@ -160,8 +158,8 @@ class Cart(CodeGenerate):
         queryset = CartProduct.objects.filter(cart=self)
         total = 0
         for item in queryset:
-            if item.product.discount_price:
-                total += item.count * item.product.discount_price
+            if item.product.discountPrice:
+                total += item.count * item.product.discountPrice
             else:
                 total += item.count * item.product.price
         return total
@@ -182,8 +180,8 @@ class CartProduct(models.Model):
 
     @property
     def price(self):
-        if self.product.discount_price:
-            return self.count * self.product.discount_price
+        if self.product.discountPrice:
+            return self.count * self.product.discountPrice
         else:
             return self.count * self.product.price
 
