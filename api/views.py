@@ -7,7 +7,7 @@ from main import models
 from . import serializers
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def product_list(request):
     products = models.Product.objects.all()
     categorys = models.Category.objects.all()
@@ -21,6 +21,18 @@ def product_list(request):
             'banner': banner_serializer.data,
             'products': product_serializer.data,
 
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(['GET', ])
+def wishlist(request):
+    wishlist = models.WishList.objects.filter(user=request.user)
+    wishlist_serializer = serializers.WishListSerializer(wishlist, many=True)
+    return Response(
+        {
+            'wishlist': wishlist_serializer.data,
         },
         status=status.HTTP_200_OK,
     )

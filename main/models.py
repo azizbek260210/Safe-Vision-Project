@@ -38,7 +38,6 @@ class User(AbstractUser):
 class Banner(CodeGenerate):
     img = models.ImageField(upload_to='banner')
 
-<<<<<<< HEAD
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -49,10 +48,6 @@ class Category(models.Model):
     @property
     def sub_category(self):
         return SubCategory.objects.filter(category__name=self.name)
-=======
-    def __str__(self):
-        return self.img.url
->>>>>>> aaf0b305a69bd7580f580e34d9793ffc1647733c
 
 
 class SubCategory(CodeGenerate):
@@ -193,5 +188,10 @@ class WishList(models.Model):
     def save(self, *args, **kwargs):
         obj = WishList.objects.filter(user=self.user, product=self.product)
         if obj.count():
-            raise ValueError('Ma`lumot bor')
-        super(WishList, self).save(*args, **kwargs)
+            obj.delete()
+        else:
+            super(WishList, self).save(*args, **kwargs)
+
+
+    def __str__(self):
+        return self.product.name + " | " + self.user.username
