@@ -2,11 +2,16 @@ from rest_framework.serializers import ModelSerializer
 from main import models
 
 
-
 class UserListSerializer(ModelSerializer):
     class Meta:
-        model = models.User
-        fields = ['id', 'username', 'first_name', 'last_name', ]
+        model = models.CustomUser
+        fields = ['id', 'phone', 'first_name', 'last_name', 'confirm', ]
+
+
+class UserProfileSerializer(ModelSerializer):
+    class Meta:
+        model = models.CustomUser
+        fields = ('first_name', 'last_name')
 
 
 class SubCategoryListSerializer(ModelSerializer):

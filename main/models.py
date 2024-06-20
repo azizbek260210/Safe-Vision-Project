@@ -1,8 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.models import AbstractUser
 from datetime import datetime
 from random import sample
 import string
+import uuid
+from django.conf import settings
 
 
 class CodeGenerate(models.Model):
@@ -25,18 +28,58 @@ class CodeGenerate(models.Model):
         abstract = True
 
 
-class User(AbstractUser):
-    avatar = models.ImageField(upload_to='avatar/', blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=255, blank=True, null=True)
-    zip_code = models.IntegerField(blank=True, null=True)
+class CustomUserManager(BaseUserManager):
+    def create_user(self, phone, **extra_fields):
+        if not phone:
+            raise ValueError('The Phone field must be set')
+        user = self.model(phone=phone, **extra_fields)
+        user.save(using=self._db)
+        return user
 
-    class Meta(AbstractUser.Meta):
-        swappable = "AUTH_USER_MODEL"
+    def create_superuser(self, phone, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(phone, **extra_fields)
+
+
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    phone = models.CharField(max_length=20, unique=True)
+    confirm = models.CharField(max_length=6, null=True, blank=True)
+    username = models.CharField(max_length=255, blank=True, null=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True, null=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(auto_now_add=True, editable=False)
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'phone'
+    REQUIRED_FIELDS = []
+
+    def __str__(self):
+        return self.phone
+
+    def verify_code(self, code):
+        return self.confirm == code
+
+    def has_perm(self, perm, obj=None):
+        return self.is_staff
+
+    def has_module_perms(self, app_label):
+        return self.is_staff
 
 
 class Banner(CodeGenerate):
-    img = models.ImageField(upload_to='banner')
+    img = models.ImageField(upload_to='media/banner')
 
 
 class Category(models.Model):
@@ -52,7 +95,7 @@ class Category(models.Model):
 
 class SubCategory(CodeGenerate):
     name = models.CharField(max_length=255, )
-    image = models.ImageField(upload_to='subcategory', blank=True, null=True)
+    image = models.ImageField(upload_to='media/subcategory', blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -84,7 +127,7 @@ class Product(CodeGenerate):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    img = models.ImageField(upload_to='img/')
+    img = models.ImageField(upload_to='media/img/')
 
 
 # class EnterProduct(CodeGenerate):
@@ -123,7 +166,7 @@ class ProductImage(models.Model):
 
 
 class Cart(CodeGenerate):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     status = models.IntegerField(
         choices=(
             (1, 'No Faol'),
@@ -182,7 +225,7 @@ class CartProduct(models.Model):
 
 
 class WishList(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
@@ -191,7 +234,6 @@ class WishList(models.Model):
             obj.delete()
         else:
             super(WishList, self).save(*args, **kwargs)
-
 
     def __str__(self):
         return self.product.name + " | " + self.user.username
